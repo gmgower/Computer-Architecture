@@ -1,3 +1,4 @@
+# s2 commands
 PRINT_TIM      =  0b00000001
 HALT           =  0b00000010
 PRINT_NUM      =  0b00000011  # command 3
@@ -10,6 +11,7 @@ PRINT_REGISTER =  0b00000101
 ## we store everything in memory
 ## we move our PC to step through memory, and execute commands
 
+# s1
 memory = [
     PRINT_TIM, 
     PRINT_TIM,
@@ -23,8 +25,9 @@ memory = [
     HALT,       # <--- PC
           ]
 
+# s3
 running = True
-pc = 0
+pc = 0 # program counter
 
 # save the number 42 into R2
 # what arguments does SAVE require?
@@ -32,7 +35,7 @@ pc = 0
 # registers (use as variables)
 # R0-R7
 registers = [None] * 8
-
+# s4 while loop condition
 while running:
 
     command = memory[pc]
