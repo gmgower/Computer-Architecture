@@ -8,10 +8,10 @@ import sys
 # print(sys.argv)
 # sys.exit()
 
-LDI = 0b10000010
-MUL = 0b10100010
-PRN = 0b01000111
-HLT = 0b00000001
+# LDI = 0b10000010
+# MUL = 0b10100010
+# PRN = 0b01000111
+# HLT = 0b00000001
 
 
 class CPU:
@@ -26,11 +26,20 @@ class CPU:
         # Program counter, the index (address) of the current instruction
         self.pc = 0
         self.running = True
-        # self.LDI = 0b10000010
-        # self.PRN = 0b01000111
-        # self.HLT = 0b00000001
+ 
+        # Instructions
+        self.LDI = 0b10000010
+        self.MUL = 0b10100010
+        self.PRN = 0b01000111
+        self.HLT = 0b00000001
 
-        # self.MULT = 0b10100010
+        # Turning the branch table into an object to be able to update easier
+        self.branchtable = {
+            self.LDI: self.ldi,
+            self.MUL: self.multiply,
+            self.PRN: self.prn,
+            self.HLT: self.halt
+        }
 
     def load(self, program_filename):
         """Load a program into memory."""
@@ -80,6 +89,37 @@ class CPU:
     def ram_write(self, MDR, MAR):
         self.ram[MAR] = MDR
 
+
+    # Branch Table
+
+    def ldi(self):
+        # print("HI")
+        register_num = self.ram_read(self.pc + 1)  # operand_a (address)
+        value = self.ram_read(self.pc + 2)  # operand_b (value)
+        # adds the value to the register
+        self.reg[register_num] = value
+        # print('-----------------')
+        # print(f'LDI: value ', self.reg[register_num])
+        self.pc += 3
+    
+    def multiply(self):
+        num_reg_a = self.ram_read(self.pc + 1)
+        num_reg_b = self.ram_read(self.pc + 2)
+        self.alu('MULT', num_reg_a, num_reg_b)
+        self.pc += 3
+
+    def prn(self):
+        register_num = self.ram_read(self.pc + 1)  # operand_a (address)
+        value = self.reg[register_num]
+        # print('-----------------')
+        print(value)
+        self.pc += 2
+
+    def halt(self):
+        # print('LLLLL')
+        self.running = False
+        
+
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -91,9 +131,9 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
-    def trace(self):
+    def trace(self, LABEL=str()):
 
-        print(f"TRACE: %02X | %02X %02X %02X |" % (
+        print(f"{LABEL} TRACE: %02X | %02X %02X %02X |" % (
             self.pc,
             # self.fl,
             # self.ie,
@@ -122,6 +162,18 @@ class CPU:
         #instruction_length = ???
         while self.running:
 
+            # Stores the result in "Instruction Register" from the memory (RAM) address from the program
+            IR = self.ram_read(self.pc)
+
+            if self.branchtable.get(IR):
+                self.trace()
+                self.branchtable[IR]()
+            else:
+                print('Unkown instruction')
+                self.trace("End")
+                self.running = False
+
+            """
             # Stores the result in "Instruction Register" from the memory (RAM) address from the program
             IR = self.ram_read(self.pc)
             # register_num = self.ram_read(PC + 1) # operand_a (address)
@@ -167,3 +219,4 @@ class CPU:
 
                 print('Unknown instruction')
                 self.running = False
+            """
