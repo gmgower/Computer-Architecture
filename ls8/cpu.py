@@ -25,20 +25,26 @@ class CPU:
         self.reg = [0] * 8  # returns 8 zeros and stores values (0-7)
         # Program counter, the index (address) of the current instruction
         self.pc = 0
+        self.SP = 7 # R7 is reserved
+        self.reg[self.SP] = 0xF4
         self.running = True
  
         # Instructions
-        self.LDI = 0b10000010
-        self.MUL = 0b10100010
-        self.PRN = 0b01000111
-        self.HLT = 0b00000001
+        self.LDI =  0b10000010
+        self.MUL =  0b10100010
+        self.PRN =  0b01000111
+        self.PUSH = 0b01000101
+        self.POP =  0b01000110
+        self.HLT =  0b00000001
 
         # Turning the branch table into an object to be able to update easier
         self.branchtable = {
             self.LDI: self.ldi,
             self.MUL: self.multiply,
             self.PRN: self.prn,
-            self.HLT: self.halt
+            self.HLT: self.halt,
+            self.PUSH: self.push,
+            self.POP: self.pop            
         }
 
     def load(self, program_filename):
@@ -115,8 +121,35 @@ class CPU:
         print(value)
         self.pc += 2
 
+    def push(self):
+        # decrement the stack pointer 
+        self.reg[self.SP] -= 1
+        
+        #copy value from register into memory
+        register_num = self.ram[self.pc + 1]
+        value = self.reg[register_num]  # this value to push
+
+        stack_position = self.reg[self.SP] # index into memory
+        self.ram[stack_position] = value # store the value on the stack
+        
+        self.pc += 2
+
+    def pop(self):
+        # current stack pointer position
+        stack_position = self.reg[self.SP]
+
+        # get current value from memory(RAM) from stack pointer
+        value = self.ram[stack_position]
+
+        # add the value to the register
+        register_num = self.ram[self.pc + 1]
+        self.reg[register_num] = value
+        # Increment the stack pointer position
+        self.reg[self.SP] += 1
+
+        self.pc += 2
+
     def halt(self):
-        # print('LLLLL')
         self.running = False
         
 
@@ -125,15 +158,18 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
-        #elif op == "SUB": etc
+        elif op == "SUB": 
+            self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MULT":
             self.reg[reg_a] *= self.reg[reg_b]
+        elif op == "DIV":
+            self.reg[reg_a] /= self.reg[reg_b]
         else:
             raise Exception("Unsupported ALU operation")
 
     def trace(self, LABEL=str()):
 
-        print(f"{LABEL} TRACE: %02X | %02X %02X %02X |" % (
+        print(f"{LABEL} TRACE --> PC: %02i | RAM: %03i %03i %03i | Register: " % (
             self.pc,
             # self.fl,
             # self.ie,
@@ -143,7 +179,12 @@ class CPU:
         ), end='')
 
         for i in range(8):
-            print(" %02X" % self.reg[i], end='')
+            print(" %02i" % self.reg[i], end='')
+
+            print(" | Stack:", end='')
+
+            for i in range(240, 244):
+                print(" %02i" % self.ram_read(i), end='')
 
         print()
 
@@ -169,7 +210,7 @@ class CPU:
                 self.trace()
                 self.branchtable[IR]()
             else:
-                print('Unkown instruction')
+                print('Unknown instruction')
                 self.trace("End")
                 self.running = False
 
