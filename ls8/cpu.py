@@ -184,10 +184,8 @@ class CPU:
         # set the pc so it know where to return to 
         self.pc = return_address
     
-
     def halt(self):
-        self.running = False
-        
+        self.running = False        
 
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
@@ -250,50 +248,3 @@ class CPU:
                 self.trace("End")
                 self.running = False
 
-            """
-            # Stores the result in "Instruction Register" from the memory (RAM) address from the program
-            IR = self.ram_read(self.pc)
-            # register_num = self.ram_read(PC + 1) # operand_a (address)
-            # value = self.ram_read(PC + 2) # operand_b (value)
-            # print('-----------------')
-            # print(f"run: IR:",IR)
-            # print('-----------------')
-
-            # self.trace()
-            if IR == LDI:
-                self.trace()
-                # print("HI")
-                register_num = self.ram_read(
-                    self.pc + 1)  # operand_a (address)
-                value = self.ram_read(self.pc + 2)  # operand_b (value)
-                # adds the value to the register
-                self.reg[register_num] = value
-                # print('-----------------')
-                # print(f'LDI: value ', self.reg[register_num])
-                self.pc += 3
-
-            elif IR == MUL:
-                num_reg_a = self.ram_read(self.pc + 1)
-                num_reg_b = self.ram_read(self.pc + 2)
-                self.alu('MULT', num_reg_a, num_reg_b)
-                self.pc += 3
-
-            elif IR == PRN:
-                self.trace()
-                register_num = self.ram_read(
-                    self.pc + 1)  # operand_a (address)
-                value = self.reg[register_num]
-                # print('-----------------')
-                print(value)
-                self.pc += 2
-
-            elif IR == HLT:
-                self.trace()
-            #     # print('LLLLL')
-                self.running = False
-
-            else:
-
-                print('Unknown instruction')
-                self.running = False
-            """
